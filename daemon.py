@@ -110,6 +110,8 @@ class daemon:
 				print (str(err.args))
 				sys.exit(1)
 
+		self._stop()
+
 	# Function to Restart the daemon
 	def restart(self):
 		self.stop()
@@ -119,4 +121,10 @@ class daemon:
 		"""
 		Override this class method in subclass
 		"""
-		
+
+	# function to run once the stop is called
+	def _stop(self):
+		"""
+		Override this class method in subclass
+		"""
+

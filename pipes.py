@@ -1,17 +1,24 @@
 # Class to deal with pipes
+import os, sys, time
+
 class dpipes:
-	name = "vagrantpyd_pipe"
-	pipe = None
+	def __init__(self, pipePath):
+		self.pipePath = pipePath
 
-	def __init__(self):
-		print "constructor for pipe called"
-		print self.name
-		self.pipe = open(self.name, 'r')
+	def create(self):
+		# make a fifo pipe
+		if not os.path.exists(self.pipePath):
+			os.mkfifo(self.pipePath)
 
+		print "[%s] Creating named pipe, to listen to incoming commands" % time.time()
+		self.fifo = open(self.pipePath, 'r')
 
-	def listen(self):
 		while True:
-			line = pipein.readline()[:-1]
-	        data = 'Parent %d got "%s" at %s' % (os.getpid(), line, time.time( ))
-	        with open("/Users/minhazav/hector/test/output.txt", "a") as testFile:
-	        	testFile.write(data)
+			line = self.fifo.readline()[:-1]
+			if line:
+				print '[%s] Command Recieved: %s' % (time.time(), line)
+				#TODO - spawn a new thread and process the argument
+
+	def destroy(self):
+		if os.path.exists(self.pipePath):
+			os.remove(self.pipePath)

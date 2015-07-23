@@ -5,6 +5,7 @@ from daemon import daemon
 from pipes import dpipes
  
 pidFilePath = "/Users/minhazav/hector/test/test.pid"
+pipePath = "/Users/minhazav/hector/test/pipe"
 logfilePath = "/Users/minhazav/hector/test/logs"
 errfilePath = "/Users/minhazav/hector/test/err"
 
@@ -13,13 +14,21 @@ class vagrantpyd(daemon):
         #TODO: define event listener for named pipe here
         # Currently writing to temp code to test daemon for now
         try:
-            mypipe = dpipes()
+            mypipe = dpipes(pipePath)
+            mypipe.create()
         except Exception as inst:
-            print "exception occured while trying to create a log file"
-            print inst
-        while True:
-            print "something printed to stdout"
-            time.sleep(1)
+            # TODO print correct exception message
+            print "[%s] Unable to create pipes required to communicate with daemon.\nException: %s" % (time.time(), inst)
+            sys.exit(1)
+
+    def _stop(self):
+        try:
+            mypipe = dpipes(pipePath)
+            mypipe.destroy()
+        except Exception as inst:
+            # TODO print correct exception message
+            print "[%s] Unable to destroy pipes" % time.time()
+            sys.exit(1)
  
 
 if __name__ == "__main__":
