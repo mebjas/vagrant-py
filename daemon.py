@@ -2,7 +2,15 @@
 import sys, os, time, atexit, signal
 
 class daemon:
-	def __init__(self, pidfile): self.pidfile = pidfile
+
+	# Constructor
+	# @param pidfile: file path for storing process information
+	# @param logfile: file path to redirect stdout to
+	# @param errfilePath: file path to redirect stderr to
+	def __init__(self, pidfile, logfile, errfilePath):
+		self.pidfile = pidfile
+		self.logfile = logfile
+		self.errfilePath = errfilePath
 
 	# Deamonize class. UNIX double fork mechanism	
 	def daemonize(self):
@@ -31,21 +39,22 @@ class daemon:
 			sys.exit(1) 
 	
 		# redirect standard file descriptors
-		sys.stdout.flush()
-		sys.stderr.flush()
 		si = open(os.devnull, 'r')
-		so = open(os.devnull, 'a+')
-		se = open(os.devnull, 'a+')
+		so = open(self.logfile, 'a+')
+		se = open(self.errfilePath, 'a+')
 
 		os.dup2(si.fileno(), sys.stdin.fileno())
 		os.dup2(so.fileno(), sys.stdout.fileno())
 		os.dup2(se.fileno(), sys.stderr.fileno())
+
+		sys.stdout.flush()
+		sys.stderr.flush()
 	
 		# write pidfile
 		atexit.register(self.delpid)
 
 		pid = str(os.getpid())
-		print "Process PID: %s\n" % pid
+		print "Process PID: %s" % pid
 		with open(self.pidfile,'w+') as f:
 			f.write(pid + '\n')
 	
@@ -54,7 +63,7 @@ class daemon:
 		os.remove(self.pidfile)
 
 	# Function to start the daemon
-	def start(self):	
+	def start(self):
 		# Check for a pidfile to see if the daemon already runs
 		try:
 			with open(self.pidfile,'r') as pf:
@@ -110,3 +119,4 @@ class daemon:
 		"""
 		Override this class method in subclass
 		"""
+		
