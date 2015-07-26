@@ -1,5 +1,6 @@
 # Class to deal with pipes
 import os, sys, time
+from cmd import commandproc
 
 class dpipes:
 	def __init__(self, pipePath):
@@ -17,7 +18,8 @@ class dpipes:
 			line = self.fifo.readline()[:-1]
 			if line:
 				print '[%s] Command Recieved: %s' % (time.time(), line)
-				#TODO - spawn a new thread and process the argument
+				# Spawn a new thread and process the argument
+				commandproc(line)
 
 	def destroy(self):
 		if os.path.exists(self.pipePath):

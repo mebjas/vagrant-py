@@ -1,13 +1,15 @@
 #!/usr/bin/env python
  
-import sys, time
+import sys, time, os
 from daemon import daemon
 from pipes import dpipes
  
-pidFilePath = "/Users/minhazav/hector/test/test.pid"
-pipePath = "/Users/minhazav/hector/test/pipe"
-logfilePath = "/Users/minhazav/hector/test/logs"
-errfilePath = "/Users/minhazav/hector/test/err"
+# define all paths required
+currentPath = os.path.dirname(os.path.realpath(__file__))
+pidFilePath = currentPath +"/tmp/process.pid"
+pipePath = currentPath +"/tmp/pipe"
+logfilePath = currentPath +"/tmp/logs"
+errfilePath = currentPath +"/tmp/err"
 
 class vagrantpyd(daemon):
     def run(self):
@@ -30,6 +32,9 @@ class vagrantpyd(daemon):
             print "[%s] Unable to destroy pipes" % time.time()
             sys.exit(1)
  
+if not os.path.exists("./tmp/"):
+    os.makedirs("./tmp/")
+
 
 if __name__ == "__main__":
     daemon = vagrantpyd(pidFilePath, logfilePath, errfilePath)
