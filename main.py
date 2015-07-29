@@ -1,5 +1,4 @@
-#!/usr/bin/env python
- 
+#!/usr/bin/env python 
 import sys, time, os
 from daemon import daemon
 from pipes import dpipes
@@ -13,7 +12,7 @@ errfilePath = currentPath +"/tmp/err"
 
 class vagrantpyd(daemon):
     def run(self):
-        #TODO: define event listener for named pipe here
+        # Define event listener for named pipe here
         # Currently writing to temp code to test daemon for now
         try:
             mypipe = dpipes(pipePath)
@@ -32,6 +31,8 @@ class vagrantpyd(daemon):
             print "[%s] Unable to destroy pipes" % time.time()
             sys.exit(1)
  
+# Create a tmp directory if not exists
+# if required by the files needed
 if not os.path.exists("./tmp/"):
     os.makedirs("./tmp/")
 

@@ -1,6 +1,8 @@
 # Code to deal with the requested command
-import os, sys, time, json
+import os, sys, time, json, data
 from threading import Thread
+from data import vagrantData
+
 
 class commandproc:
 
@@ -11,7 +13,7 @@ class commandproc:
 	def classifier(self, command):
 		args = command.split(' ')
 		
-		if len(args) < 2:
+		if len(args) < 3:
 			print "[%s] Invalid command: {%s} sent to daemon. Skipping the command!" % (time.time(), command)
 			return
 
@@ -26,8 +28,26 @@ class commandproc:
 		# ------------------------------------------------------------------------
 
 		cmdString = args[1]
-		# if "create" == cmdString:
-			#TODO - read xml file and create a box,return meaning full information
+		if "create" == cmdString:
+			#TASK - read xml file and create a box,return meaning full information
+			xmlFile = args[2]	# TODO verify the type of data?
+			xmlData = vagrantData(xmlFile)
+			success = xmlData.parse()
+			if not success == True:
+				self.out['error'] = True
+				self.out['message'] = "Unable to parse provided XML! Error: %s" % str(success)
+			else:
+				print "Creating a vagrant box..."
+				# TODO - accordingly create a vagrant box now
+		if "start" == cmdString:
+			print "start command triggered"
+			# TASKS:
+			# Create a clone directory of the challenge directory
+			# Start VagrantBox for this one
+			# Return the ID
+		if "stop" == cmdString:
+			print "stop command triggered"
+
 		# elif "start" == cmdString:
 
 		# ------------------------------------------------------------------------
