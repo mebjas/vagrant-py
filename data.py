@@ -7,11 +7,13 @@ loads it, and retrieve data from it.
 """
 import xml.etree.ElementTree as ET
 
+
 class vagrantFile:
 	def __init__(self, src, dest, type):
 		self.src = src
 		self.dest = dest
 		self.isADir = (type == 'dir')
+
 
 class vagrantData:
 	baseBox = None
@@ -31,7 +33,13 @@ class vagrantData:
 					for grandchild in child:
 						try:
 							attribs = grandchild.attrib
-							self.files.append(vagrantFile(attribs['src'], attribs['dest'], attribs['type']))
+							self.files.append(
+								vagrantFile(
+									attribs['src'],
+									attribs['dest'],
+									attribs['type']
+								)
+							)
 						except Exception as ex:
 							# TODO - get proper error message
 							return ex
@@ -51,5 +59,3 @@ class vagrantData:
 	def __init__(self, filename):
 		tree = ET.parse(filename)
 		self.root = tree.getroot()
-
-
