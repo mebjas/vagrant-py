@@ -22,8 +22,8 @@ class vagrantpyd(daemon):
             mypipe.create()
         except Exception as inst:
             # TODO print correct exception message
-            print "[%s] Unable to create pipes required to communicate"
-            " with daemon.\nException: %s" % (time.time(), inst)
+            print """[%s] Unable to create pipes required to communicate
+            with daemon.\nException: %s""" % (time.time(), inst)
             sys.exit(1)
 
     def _stop(self):

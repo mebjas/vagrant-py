@@ -14,8 +14,8 @@ class dpipes:
 		if not os.path.exists(self.pipePath):
 			os.mkfifo(self.pipePath)
 
-		print "[%s] [Main Thread] Creating named pipe, "
-		" to listen to incoming commands" % time.time()
+		print """[%s] [Main Thread] Creating named pipe, 
+		to listen to incoming commands""" % time.time()
 		self.fifo = open(self.pipePath, 'r')
 
 		while True:
