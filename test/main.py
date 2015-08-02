@@ -35,6 +35,10 @@ class TestDaemon(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         self.parentdir = os.path.dirname(self.currentdir)
 
+        # Do clean up tasks
+        if os.path.exists(self.parentdir + "/tmp/process.pid"):
+            os.remove(self.parentdir + "/tmp/process.pid")
+
         print "\n---- Starting Vagrant Daemon ----"
         subprocess.call([self.parentdir + '/main.py', 'start'])
 
