@@ -60,7 +60,6 @@ class TestDaemon(unittest.TestCase):
         # Start the daemo via command line
         subprocess.call([self.parentdir + '/main.py', 'start'])
 
-
     def tearDown(self):
         # Stop the Daemon using command line
         subprocess.call([self.parentdir + '/main.py', 'stop'])
@@ -114,7 +113,7 @@ class TestXMLParser(unittest.TestCase):
         self.currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         self.parentdir = os.path.dirname(self.currentdir)
-        self.xmlfilepath = self.currentdir + "/sample.xml"
+        self.xmlfilepath = self.currentdir + "/challenge.xml"
         self.d = vagrantData(self.xmlfilepath)
 
         self.assertTrue(self.d.parse())
