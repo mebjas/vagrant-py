@@ -9,4 +9,6 @@ python:
   # maintainers to fix their pypy-dev package.
   - "pypy"
 # command to run tests
-script: test.main
+script:
+  - cd test
+  - ./main.py
