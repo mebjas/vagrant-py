@@ -6,12 +6,12 @@ Start with `python main.py start` - this will start the daemon. Similarly you ca
 
 The daemon listens to a named pipe at: `<current dir>/tmp/pipe` by default and accepts certain command. Command looks like:
 
- - <random str> create <xml file path>
- - <random str> delete <box id>
- - <random str> start <box id>
- - <random str> destroy <challenge id>
- - <random str> info boxes
- - <random str> info box <box id>
+ - `<random str> create <xml file path>`
+ - `<random str> delete <box id>`
+ - `<random str> start <box id>`
+ - `<random str> destroy <challenge id>`
+ - `<random str> info boxes`
+ - `<random str> info box <box id>`
 
 The daemon responds back via named pipe situated at `<current dir>/tmp/<random str>` in `json` format.
 
