@@ -10,12 +10,38 @@ from threading import Thread
 from data import vagrantData
 
 
+class helper:
+
+    @staticmethod
+    # Global function to copy file or directory
+    def copy(src, dest):
+        try:
+            shutil.copytree(src, dest)
+        except OSError as e:
+            # If the error was caused because the source wasn't a directory
+            if e.errno == errno.ENOTDIR:
+                shutil.copy(src, dest)
+            else:
+                print('Directory not copied. Error: %s' % e)
+
+    @staticmethod
+    def getRootFolder(path):
+        arr = path.split('/')
+        if arr[0] == '':
+            try:
+                return arr[1]
+            except:
+                return ''
+        return arr[0]
+
+
 class commandproc:
 
     # Defining the main output variable to be sent back to the
     # system. It will be passed by reference to all classes
     out = {}
 
+    # Function to add a vagrant box if not exists
     def vagrantAddBox(self, boxname):
         try:
             op = subprocess.check_call(
@@ -24,6 +50,7 @@ class commandproc:
             print """[%s] Exception Occured while adding box {%s},
             Ex: {%s}""" % (time.time(), boxname, ex)
 
+    # Function to call init method in the current directory
     def vagrantInit(self):
         try:
             op = subprocess.check_output(['vagrant', 'init'])
@@ -59,7 +86,8 @@ class commandproc:
             TASK - read xml file and create a box,return meaning full information
             """
 
-            xmlFile = args[2] + "/challenge.xml"
+            challengePath = args[2]
+            xmlFile = challengePath + "/challenge.xml"
             # TODO verify the type of data ^
             xmlData = vagrantData(xmlFile)
             success = xmlData.parse()
@@ -71,6 +99,7 @@ class commandproc:
                 # TODO: verify the data loaded from XML
                 data = {}
                 data['basebox'] = xmlData.baseBox
+                data['basePath'] = self.currentPath + "/data/boxes"
 
                 # Add a base box if not exists
                 self.vagrantAddBox(xmlData.baseBox)
@@ -84,9 +113,9 @@ class commandproc:
                     os.makedirs("./data")
 
                 os.chdir("./data")
-                if not os.path.exists("./challenges"):
-                    os.makedirs("./challenges")
-                os.chdir("./challenges")
+                if not os.path.exists("./boxes"):
+                    os.makedirs("./boxes")
+                os.chdir("./boxes")
 
                 challengeIdBase = xmlData.baseBox.replace('/', '_')
                 i = 1
@@ -105,11 +134,33 @@ class commandproc:
                     self.out['message'] = 'vagrant init failed'
                 else:
                     shutil.copyfile(xmlFile, "challenge.xml")
-                    # TODO: create the files directory and copy the files, to that directory
+                    # create the files directory and copy the files, to that directory
                     # In same manner as provided in xml
+                    os.makedirs("files")
+                    os.chdir("./files")
+                    directoriesCopies = []
+
+                    # Copy the files
+                    for _file in xmlData.files:
+                        if helper.getRootFolder(_file.src) not in directoriesCopies:
+                            # Copy that folder to this folder
+                            directory = helper.getRootFolder(_file.src)
+                            helper.copy(
+                                challengePath + "/" + directory, directory)
+                            directoriesCopies.append(directory)
+
+                    # Copy the scripts
+                    for _script in xmlData.scripts:
+                        if helper.getRootFolder(_script) not in directoriesCopies:
+                            # Copy that folder to this folder
+                            directory = helper.getRootFolder(_script)
+                            helper.copy(
+                                challengePath + "/" + directory, directory)
+                            directoriesCopies.append(directory)
 
                     # TODO: Modify the vagrantFile according to xml data
                     self.out['data'] = data
+                    self.out['message'] = 'success'
 
         elif "start" == cmdString:
             print "start command triggered"
