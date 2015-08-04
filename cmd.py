@@ -6,6 +6,7 @@ import json
 import data
 import subprocess
 import shutil
+import re
 from threading import Thread
 from data import vagrantData
 
@@ -51,9 +52,9 @@ class commandproc:
             Ex: {%s}""" % (time.time(), boxname, ex)
 
     # Function to call init method in the current directory
-    def vagrantInit(self):
+    def vagrantInit(self, boxname):
         try:
-            op = subprocess.check_output(['vagrant', 'init'])
+            op = subprocess.check_output(['vagrant', 'init', boxname])
         except Exception as ex:
             print """[%s] Exception Occured while initialising vagrant box,
             Ex: {%s}""" % (time.time(), ex)
@@ -61,6 +62,43 @@ class commandproc:
             return False
 
         return True
+
+    # Function to create a vagrant file from template
+    def createVagrantFile(self):
+        with open("../../.VagrantFile", 'r') as f:
+            data = f.read()
+
+        data = data.replace('~basebox~', self.xmlData.baseBox)
+
+        # Replace files with files
+        m = re.search('\~files\~\\n(.*)\\n.*\~files\~', data)
+        fileConfig = m.group(1)
+        fileConfigScript = ''
+        for _file in self.xmlData.files:
+            if (_file.src[0] == '/'):
+                prefix = 'files'
+            else:
+                prefix = 'files/'
+            fileConfigScript += fileConfig.replace(
+                '~src~', prefix + _file.src).replace('~dest~', _file.dest) + "\n"
+        data = data.replace(m.group(0), fileConfigScript)
+
+        # Replace scripts with scripts
+        m = re.search('\~shell\~\\n(.*)\\n.*\~shell\~', data)
+        scriptConfig = m.group(1)
+        scriptConfigScript = ''
+        for _script in self.xmlData.scripts:
+            if (_script[0] == '/'):
+                prefix = 'files'
+            else:
+                prefix = 'files/'
+            fileConfigScript += fileConfig.replace(
+                '~src~', prefix + _script) + "\n  "
+        data = data.replace(m.group(0), scriptConfigScript)
+
+        print subprocess.check_output(['pwd'])
+        with open('VagrantFile', 'w') as f:
+            f.write(data)
 
     def classifier(self, command):
         args = command.split(' ')
@@ -90,6 +128,7 @@ class commandproc:
             xmlFile = challengePath + "/challenge.xml"
             # TODO verify the type of data ^
             xmlData = vagrantData(xmlFile)
+            self.xmlData = xmlData
             success = xmlData.parse()
             if success is not True:
                 self.out['error'] = True
@@ -129,7 +168,7 @@ class commandproc:
                 os.chdir("./" + challengeId)
 
                 # Init vagrant at that directory
-                if not self.vagrantInit():
+                if not self.vagrantInit(xmlData.baseBox):
                     self.out['error'] = True
                     self.out['message'] = 'vagrant init failed'
                 else:
@@ -158,7 +197,15 @@ class commandproc:
                                 challengePath + "/" + directory, directory)
                             directoriesCopies.append(directory)
 
-                    # TODO: Modify the vagrantFile according to xml data
+                    # Copy the manifest file
+                    os.chdir("../")
+                    if not xmlData.puppetManifest == '':
+                        os.makedirs("manifests")
+                        shutil.copyfile(
+                            challengePath + "/" + xmlData.puppetManifest, "./manifests/default.pp")
+
+                    # Modify the vagrantFile according to xml data
+                    self.createVagrantFile()
                     self.out['data'] = data
                     self.out['message'] = 'success'
 

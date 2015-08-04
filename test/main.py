@@ -65,8 +65,8 @@ class TestDaemon(unittest.TestCase):
         subprocess.call([self.parentdir + '/main.py', 'stop'])
 
         # Do clean up tasks
-        if os.path.exists(self.parentdir + "/tmp"):
-            shutil.rmtree(self.parentdir + "/tmp")
+        if os.path.exists(self.parentdir + "/tmp"): print "1"
+            # shutil.rmtree(self.parentdir + "/tmp")
 
     def test_daemon_active(self):
         # Get Process ID from ../tmp/process.pid file
