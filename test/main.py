@@ -30,6 +30,7 @@ def isProcessRunning(pid):
 
 
 class TestDaemon(unittest.TestCase):
+
     def setUp(self):
         self.dirsToClean = []
 

@@ -115,7 +115,6 @@ class commandproc:
             print """[%s] Exception Occured while vagrant up,
             Ex: {%s}""" % (time.time(), ex)
 
-
     # Function to create a vagrant file from template
     def createVagrantFile(self):
         with open("../../.VagrantFile", 'r') as f:
@@ -286,11 +285,12 @@ class commandproc:
                         _challengeID = _boxId + helper.getRandStr(5)
 
                     # Copy all files to this challenge directory
-                    helper.copy("./boxes/" +_boxId, "./challenges/" +_challengeID)
+                    helper.copy(
+                        "./boxes/" + _boxId, "./challenges/" + _challengeID)
 
                     # load the xml in this directory to memory
-                    os.chdir("./challenges/" +_challengeID)
-                    xmlFile = "./challenge.xml";
+                    os.chdir("./challenges/" + _challengeID)
+                    xmlFile = "./challenge.xml"
                     xmlData = vagrantData(xmlFile)
                     xmlData.parse()
 
@@ -300,36 +300,37 @@ class commandproc:
                     fileNotFound = []
 
                     for flags in xmlData.flags:
-                        if not os.path.exists("./files/" +flags):
+                        if not os.path.exists("./files/" + flags):
                             err = True
                             fileNotFound.append(flags)
 
                     # check for files
                     for files in xmlData.files:
-                        if not os.path.exists("./files/" +files.src):
+                        if not os.path.exists("./files/" + files.src):
                             err = True
                             fileNotFound.append(files.src)
 
                     # check for scripts
                     for script in xmlData.scripts:
-                        if not os.path.exists("./files/" +script):
+                        if not os.path.exists("./files/" + script):
                             err = True
                             fileNotFound.append(script)
-                            
+
                     # check for manifests
-                    if not os.path.exists("./manifests/" +xmlData.puppetManifest):
+                    if not os.path.exists("./manifests/" + xmlData.puppetManifest):
                         err = True
                         fileNotFound.append(xmlData.puppetManifest)
 
                     if True == err:
                         self.out['err'] = True
-                        self.out['message'] = 'following files were not found: \n'
+                        self.out[
+                            'message'] = 'following files were not found: \n'
                         for _file in fileNotFound:
-                            self.out['message'] += _file +'\n'
+                            self.out['message'] += _file + '\n'
                     else:
                         # modify the flag files
                         for flag in xmlData.flags:
-                            helper.randomizeFlaginFile("./files/" +flag)
+                            helper.randomizeFlaginFile("./files/" + flag)
 
                         # TODO port forwarding / subdomain thingy
 
@@ -342,21 +343,21 @@ class commandproc:
 
         elif "stop" == cmdString:
             _challengeID = args[2]
-            if not os.path.exists("./data/challenges/" +_challengeID):
+            if not os.path.exists("./data/challenges/" + _challengeID):
                 self.out['error'] = True
                 self.out[
-                    'message'] = 'unable to stop %s, as it doesn\'t exist' %_challengeID
+                    'message'] = 'unable to stop %s, as it doesn\'t exist' % _challengeID
             else:
-                os.chdir("./data/challenges/" +_challengeID)
-                
+                os.chdir("./data/challenges/" + _challengeID)
+
                 # Stop the VM
                 self.VagrantStop()
 
                 os.chdir("../")
 
                 # delete the challenegeID Dir
-                shutil.rmtree("./" +_challengeID)
-                self.out['message'] = _challengeID +' deleted successfully'
+                shutil.rmtree("./" + _challengeID)
+                self.out['message'] = _challengeID + ' deleted successfully'
                 self.out['data'] = {}
                 self.out['data']['challenegeID'] = _challengeID
 
@@ -385,7 +386,7 @@ class commandproc:
 
                 else:
                     invalidCommand = True
-                    
+
             elif "box" == args[2]:
                 boxId = args[3]
                 print "info box <box id> called"

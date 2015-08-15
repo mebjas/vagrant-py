@@ -1,3 +1,7 @@
- - test/test.py
- - test/_main.py
- - cleanup.sh
+test/test.py
+test/_main.py
+cleanup.sh
+*.pyc
+tmp/*
+data/boxes/*
+data/challenges/*
