@@ -24,7 +24,6 @@ class dpipes:
             if line:
                 print '[%s] Command Recieved: %s' % (time.time(), line)
                 # Spawn a new thread and process the argument
-                print "line is %s" % line
                 commandproc(line)
 
             # Wait for 1 seconds now
