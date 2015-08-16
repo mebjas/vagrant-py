@@ -525,7 +525,16 @@ class commandproc:
                         self.VagrantStop(_dir)
                         shutil.rmtree("./data/challenges/" + _dir)
 
-                # TODO: reset 'active' in .status of everybox to 0
+                # reset 'active' in .status of everybox to 0
+                for _dir in os.listdir("./data/boxes"):
+                    if not os.path.isdir("./data/boxes/" +_dir): continue
+                    with open("./data/boxes/" +_dir +"/.status", 'r+') as status:
+                        jStatus = json.loads(status.readline())
+                        jStatus['active'] = 0
+                        status.seek(0)
+                        status.write(json.dumps(jStatus))
+                        status.truncate()
+
 
                 self.out['error'] = False
                 self.out['message'] = 'all boxes destroyed'
