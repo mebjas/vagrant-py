@@ -19,6 +19,9 @@ from data import vagrantData
 
 # Global funcitions needed for testing
 
+# Gloabal variables
+self_challengeId = None
+
 
 def isProcessRunning(pid):
     try:
@@ -30,6 +33,9 @@ def isProcessRunning(pid):
 
 
 class TestDaemon(unittest.TestCase):
+    g_basebox = 'ubuntu/trusty64'
+    g_challengeId = None
+    g_boxId = None
 
     def setUp(self):
         self.dirsToClean = []
@@ -62,18 +68,17 @@ class TestDaemon(unittest.TestCase):
         # Start the daemo via command line
         subprocess.call([self.parentdir + '/main.py', 'start'])
 
-        self.basebox = None
-
     def tearDown(self):
         # Stop the Daemon using command line
         subprocess.call([self.parentdir + '/main.py', 'stop'])
 
         # Do clean up tasks
-        # if os.path.exists(self.parentdir + "/tmp"):
-        #     shutil.rmtree(self.parentdir + "/tmp")
+        if os.path.exists(self.parentdir + "/tmp"):
+            shutil.rmtree(self.parentdir + "/tmp")
 
         # for dirs in self.dirsToClean:
-        #     shutil.rmtree(dirs)
+        #     if os.path.exists(dirs):
+        #         shutil.rmtree(dirs)
 
     def test_daemon_active(self):
         # Get Process ID from ../tmp/process.pid file
@@ -136,14 +141,15 @@ class TestDaemon(unittest.TestCase):
                 self.assertEquals('success', data['message'])
                 self.assertEquals('ubuntu/trusty64', data['data']['basebox'])
                 self.basebox = data['data']['basebox']
+                self.__class__.g_boxId = data['data']['boxId']
 
                 self.assertFalse(data['error'])
 
                 challengeBoxPath = data['data'][
-                    'basePath'] + "/" + data['data']['challengeId']
+                    'basePath'] + "/" + data['data']['boxId']
 
                 challengePath = data['data'][
-                    'basePath'] + "/" + data['data']['challengeId']
+                    'basePath'] + "/" + data['data']['boxId']
 
                 # Check if challenge directory was created
                 self.assertTrue(os.path.exists(challengePath))
@@ -185,16 +191,256 @@ class TestDaemon(unittest.TestCase):
 
                 # Add this directory to array for clearing at teardown
                 self.dirsToClean.append(
-                    data['data']['basePath'] + "/" + data['data']['challengeId'])
+                    data['data']['basePath'] + "/" + data['data']['boxId'])
 
                 # Verify the files, scripts against the challenge XML
                 os.unlink(i_pipename)
                 break
 
+    def test_start_box_fail(self):
+        # Function to check for failure of a start command
+        # By supplying a non existing box name
+
+        boxId = 'nonExisitingBox'
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " start " + boxId + " "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertTrue(data['error'])
+                self.assertEquals('box for boxId '
+                                  + boxId + ' not found',
+                                  data['message'])
+
+                os.unlink(i_pipename)
+                break
+
     def test_start_box(self):
-        # TODO make sure this runs after create box has been run
-        if None == self.basebox:
-            return
+        self.__class__.g_basebox = 'ubuntu/trusty64'    # << TEMP
+        self.__class__.g_boxId = 'ubuntu_trusty641'     # << TEMP
+
+        # TODO: load data of '.status' of box we are using
+
+        self.assertFalse(None == self.__class__.g_basebox)
+        self.assertFalse(None == self.__class__.g_boxId)
+
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " start " + self.__class__.g_boxId + " "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertFalse(data['error'])
+                self.assertEquals(data['message'], 'success')
+                self.__class__.g_challengeId = data['data']['challengeId']
+
+                # TODO: Compare all the files and folders
+                # TODO: Compare .success file of box and challenge
+                # TODO: test for created subdomain
+                os.unlink(i_pipename)
+                break
+
+    def test_stop_box_fails(self):
+        # Function to check for failure of a start command
+        # By supplying a non existing box name
+
+        challengeId = 'nonExisitingBox'
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " stop " + challengeId + " "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertTrue(data['error'])
+                self.assertEquals('unable to stop '
+                                  + challengeId + ', as it doesn\'t exist',
+                                  data['message'])
+
+                os.unlink(i_pipename)
+                break
+
+    def test_stop_box(self):
+        self.assertFalse(None == self.__class__.g_challengeId)
+
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " stop " + self.__class__.g_challengeId + " "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertEquals(
+                    self.__class__.g_challengeId + ' deleted successfully', data['message'])
+                self.assertEquals(
+                    self.__class__.g_challengeId, data['data']['challenegeId'])
+                self.assertFalse(data['error'])
+                self.assertFalse(
+                    os.path.exists('../data/challenges/' + self.__class__.g_challengeId))
+
+                os.unlink(i_pipename)
+                break
+
+    def test_stb_infoallbox(self):
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " info all box "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertEquals(data['message'], 'success')
+                self.assertEquals(len(data['data']), 1)
+                self.assertTrue(data['data'][0]['basebox'], 'ubuntu/trusty64')
+                self.assertTrue(data['data'][0]['boxId'], 'ubuntu_trusty641')
+                self.assertFalse(data['error'])
+
+                os.unlink(i_pipename)
+                break
+
+    def test_stc_infoallchallenge(self):
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " info all challenge "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertEquals(data['message'], 'success')
+                self.assertEquals(len(data['data']), 1)
+                self.assertEquals(data['data'][0]['status'], 'active')
+                self.assertEquals(
+                    data['data'][0]['basebox'], self.__class__.g_basebox)
+                self.assertEquals(
+                    data['data'][0]['boxId'], self.__class__.g_boxId)
+                self.assertEquals(
+                    data['data'][0]['challengeId'], self.__class__.g_challengeId)
+                self.assertFalse(data['error'])
+
+                os.unlink(i_pipename)
+                break
+
+    def test_std_infobox(self):
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " info box " + self.__class__.g_boxId + " "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertEquals(data['message'], 'success')
+                self.assertFalse(data['error'])
+                self.assertEquals(
+                    data['data']['basebox'], self.__class__.g_basebox)
+                self.assertEquals(
+                    data['data']['boxId'], self.__class__.g_boxId)
+
+                os.unlink(i_pipename)
+                break
+
+    def test_ste_infochallenge(self):
+        randStr = "qwerty123"
+        o_pipename = "../tmp/pipe"
+        i_pipename = "../tmp/" + randStr
+        outfifo = open(o_pipename, 'w+')
+        command = randStr + " info challenge " + \
+            self.__class__.g_challengeId + " "
+        print "COMMAND: %s" % command
+        outfifo.write(command)
+        outfifo.close()
+
+        # Now listen to a specific pipe
+        if not os.path.exists(i_pipename):
+            os.mkfifo(i_pipename)
+        i_fifo = open(i_pipename, 'r')
+        while True:
+            line = i_fifo.readline()[:-1]
+            if line:
+                data = json.loads(line)
+                self.assertEquals(data['message'], 'success')
+                self.assertFalse(data['error'])
+                self.assertEquals(
+                    data['data']['basebox'], self.__class__.g_basebox)
+                self.assertEquals(
+                    data['data']['boxId'], self.__class__.g_boxId)
+                self.assertEquals(
+                    data['data']['challengeId'], self.__class__.g_challengeId)
+
+                os.unlink(i_pipename)
+                break
 
 
 class TestXMLParser(unittest.TestCase):
