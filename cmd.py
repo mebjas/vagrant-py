@@ -168,7 +168,20 @@ class commandproc:
                 '~src~', prefix + _script) + "\n  "
         data = data.replace(m.group(0), scriptConfigScript)
 
-        with open(path + "/VagrantFile", 'w') as f:
+        with open(path + "/Vagrantfile", 'w') as f:
+            f.write(data)
+
+    # Function to modify a vagrant file when
+    # Start command is sent
+    def modifyVagrantFile(self, path, hostname):
+        with open("./data/.Vagrantfile", 'r') as f:
+            data = f.read()
+
+        # TODO: Come up with a way to get unique IP
+        ip = '192.168.50.2'
+
+        data = data.replace('~hostname~', hostname)
+        with open(path, 'w') as f:
             f.write(data)
 
     def classifier(self, command):
@@ -359,7 +372,9 @@ class commandproc:
                             helper.randomizeFlaginFile(
                                 tmpCurrentDir + "/files/" + flag)
 
-                        # TODO port forwarding / subdomain thingy
+                        # Subdomain thingy
+                        self.modifyVagrantFile(
+                            tmpCurrentDir + "/Vagrantfile", _challengeID)
 
                         # start the box
                         self.VagrantUp(_challengeID)
@@ -529,14 +544,14 @@ class commandproc:
 
                 # reset 'active' in .status of everybox to 0
                 for _dir in os.listdir("./data/boxes"):
-                    if not os.path.isdir("./data/boxes/" +_dir): continue
-                    with open("./data/boxes/" +_dir +"/.status", 'r+') as status:
+                    if not os.path.isdir("./data/boxes/" + _dir):
+                        continue
+                    with open("./data/boxes/" + _dir + "/.status", 'r+') as status:
                         jStatus = json.loads(status.readline())
                         jStatus['active'] = 0
                         status.seek(0)
                         status.write(json.dumps(jStatus))
                         status.truncate()
-
 
                 self.out['error'] = False
                 self.out['message'] = 'all boxes destroyed'
