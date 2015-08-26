@@ -65,6 +65,8 @@ if __name__ == "__main__":
             if not os.path.exists("../../config.inc.php"):
                 print "Hackademic config file 'config.inc.php' not found"
             else:
+                # TODO: make the code load this info from a 
+                # specific config file for vagrant-pyd
                 with open("../../config.inc.php") as conf:
                     confData = conf.read()
                     match = re.search('define\(\'SOURCE_ROOT_PATH\',\s*\"(.*)\"\);', confData)
