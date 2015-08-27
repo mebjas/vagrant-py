@@ -191,7 +191,7 @@ class commandproc:
 
         if len(args) < 3:
             print """[%s] Invalid command: {%s} sent to daemon.
-			Skipping the command!""" % (time.time(), command)
+            Skipping the command!""" % (time.time(), command)
             return
 
         self.outPipe = self.currentPath + "/tmp/" + args[0]
@@ -220,7 +220,7 @@ class commandproc:
             if success is not True:
                 self.out['error'] = True
                 self.out['message'] = """Unable to parse provided XML!
-				Error: %s """ % str(success)
+                Error: %s """ % str(success)
             else:
                 # TODO: verify the data loaded from XML
                 data = {}
@@ -348,19 +348,27 @@ class commandproc:
                     # check for files
                     for files in xmlData.files:
                         if not os.path.exists(tmpCurrentDir + "/files/" + files.src):
+                            print "[%s] file not found %s" % (time.time(),
+                                tmpCurrentDir + "/files/" + files.src)
+
                             err = True
                             fileNotFound.append(files.src)
 
                     # check for scripts
                     for script in xmlData.scripts:
                         if not os.path.exists(tmpCurrentDir + "/files/" + script):
+                            print "[%s] script not found %s" % (time.time(),
+                                tmpCurrentDir + "/files/" + script)
                             err = True
                             fileNotFound.append(script)
 
                     # check for manifests
-                    if not os.path.exists(tmpCurrentDir + "/manifests/" + xmlData.puppetManifest):
+                    if not os.path.exists(tmpCurrentDir + "/manifests/default.pp"):
                         err = True
                         fileNotFound.append(xmlData.puppetManifest)
+
+                    # local variable to store flag information
+                    flag_info = []
 
                     if True == err:
                         self.out['err'] = True
@@ -369,8 +377,6 @@ class commandproc:
                         for _file in fileNotFound:
                             self.out['message'] += _file + '\n'
                     else:
-                        flag_info = []
-
                         # modify the flag files
                         for flag in xmlData.flags:
                             _new_flag = helper.randomizeFlaginFile(
@@ -378,10 +384,12 @@ class commandproc:
                             flag_info.append({"/files/" + flag: _new_flag})
 
                         # Subdomain thingy
+                        print "modifying the vagrant file for network info"
                         self.modifyVagrantFile(
                             tmpCurrentDir + "/Vagrantfile", _challengeID)
 
                         # start the box
+                        print "starting vagrant box"
                         self.VagrantUp(_challengeID)
 
                         # Update basebox status
@@ -583,7 +591,7 @@ class commandproc:
         self.outfifo.close()
 
         print """[%s] Output sent back to client using pipe:
-		%s""" % (time.time(), self.outPipe)
+        %s""" % (time.time(), self.outPipe)
 
     # Constructor: Calls the classifier method in new thread
     def __init__(self, command, ip, domain):
