@@ -1,4 +1,4 @@
-# vagrant-py
+# vagrant-py [![todofy badge](https://todofy.org/b/mebjas/vagrant-pyd)](https://todofy.org/r/mebjas/vagrant-pyd)
 Python daemon to programatically control vagrant. 
 
 ### How to start
